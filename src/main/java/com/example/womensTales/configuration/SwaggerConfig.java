@@ -1,6 +1,6 @@
 package com.example.womensTales.configuration;
 
-import org.springdoc.core.customizers.OpenApiCustomiser;
+import org.springdoc.core.customizers.OpenApiCustomizer;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
@@ -15,49 +15,43 @@ import io.swagger.v3.oas.models.responses.ApiResponses;
 @Configuration
 public class SwaggerConfig {
 
-	@Bean
-	public OpenAPI springBlogPessoalOpenAPI() {
-		return new OpenAPI()
-				.info(new Info()
-					.title("Projeto Women's Tales")
-					.description("Projeto Integrador - ODS-05 ")
-					.version("v0.0.1")
-				.license(new License()
-					.name("generation.org.br")
-					.url("http://springdoc.org"))
-				.contact(new Contact()
-					.name("Grupo 06")
-					.url("https://github.com/cristianedamaceno/Women-s-Tales-Project")
-					.email("womenstales.generation@gmail.com")))
-				.externalDocs(new ExternalDocumentation()
-					.description("Github")
-					.url("https://github.com/cristianedamaceno/Women-s-Tales-Project"));
-	}
+    @Bean
+    public OpenAPI springWomensTalesOpenAPI() {
+        return new OpenAPI()
+                .info(new Info()
+                        .title("Projeto Women's Tales")
+                        .description("Projeto Integrador - ODS-05")
+                        .version("v0.0.1")
+                        .license(new License()
+                                .name("generation.org.br")
+                                .url("http://springdoc.org"))
+                        .contact(new Contact()
+                                .name("Grupo 06")
+                                .url("https://github.com/cristianedamaceno/Women-s-Tales-Project")
+                                .email("womenstales.generation@gmail.com")))
+                .externalDocs(new ExternalDocumentation()
+                        .description("Repositório no GitHub")
+                        .url("https://github.com/cristianedamaceno/Women-s-Tales-Project"));
+    }
 
-	@Bean
-	public OpenApiCustomiser customerGlobalHeaderOpenApiCustomiser() {
+    @Bean
+    public OpenApiCustomizer customGlobalHeaderOpenApiCustomizer() {
+        return openApi -> openApi.getPaths().values().forEach(pathItem ->
+                pathItem.readOperations().forEach(operation -> {
+                    ApiResponses apiResponses = operation.getResponses();
 
-		return openApi -> {
-			openApi.getPaths().values().forEach(pathItem -> pathItem.readOperations().forEach(operation -> {
+                    apiResponses.addApiResponse("200", createApiResponse("Sucesso!"));
+                    apiResponses.addApiResponse("201", createApiResponse("Objeto Persistido!"));
+                    apiResponses.addApiResponse("204", createApiResponse("Objeto Excluído!"));
+                    apiResponses.addApiResponse("400", createApiResponse("Erro na Requisição!"));
+                    apiResponses.addApiResponse("401", createApiResponse("Acesso Não Autorizado!"));
+                    apiResponses.addApiResponse("404", createApiResponse("Objeto Não Encontrado!"));
+                    apiResponses.addApiResponse("500", createApiResponse("Erro na Aplicação!"));
+                })
+        );
+    }
 
-				ApiResponses apiResponses = operation.getResponses();
-
-				apiResponses.addApiResponse("200", createApiResponse("Sucesso!"));
-				apiResponses.addApiResponse("201", createApiResponse("Objeto Persistido!"));
-				apiResponses.addApiResponse("204", createApiResponse("Objeto Excluído!"));
-				apiResponses.addApiResponse("400", createApiResponse("Erro na Requisição!"));
-				apiResponses.addApiResponse("401", createApiResponse("Acesso Não Autorizado!"));
-				apiResponses.addApiResponse("404", createApiResponse("Objeto Não Encontrado!"));
-				apiResponses.addApiResponse("500", createApiResponse("Erro na Aplicação!"));
-
-			}));
-		};
-	}
-
-	private ApiResponse createApiResponse(String message) {
-
-		return new ApiResponse().description(message);
-
-	}
-
+    private ApiResponse createApiResponse(String message) {
+        return new ApiResponse().description(message);
+    }
 }
