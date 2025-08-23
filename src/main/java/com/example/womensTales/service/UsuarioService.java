@@ -60,11 +60,7 @@ public class UsuarioService {
                 usuarioLogin.get().setFoto(usuario.get().getFoto());
                 usuarioLogin.get().setApelido(usuario.get().getApelido());
                 usuarioLogin.get().setProfissao(usuario.get().getProfissao());
-                usuarioLogin.get().setToken(gerarBasicToken(
-                        usuarioLogin.get().getUsuario(),
-                        usuarioLogin.get().getSenha()));
 
-                // ⚠️ não setamos mais a senha de volta para o DTO
                 usuarioLogin.get().setSenha(null);
 
                 return usuarioLogin;
@@ -82,9 +78,4 @@ public class UsuarioService {
         return new BCryptPasswordEncoder().matches(senhaDigitada, senhaBanco);
     }
 
-    private String gerarBasicToken(String usuario, String senha) {
-        String token = usuario + ":" + senha;
-        String tokenBase64 = Base64.getEncoder().encodeToString(token.getBytes(StandardCharsets.US_ASCII));
-        return "Basic " + tokenBase64;
-    }
 }

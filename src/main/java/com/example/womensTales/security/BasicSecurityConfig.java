@@ -54,8 +54,7 @@ public class BasicSecurityConfig {
                         .requestMatchers("/usuarios/cadastrar").permitAll()
                         .requestMatchers(HttpMethod.OPTIONS).permitAll()
                         .anyRequest().authenticated()
-                )
-                .httpBasic();
+                );
 
         return http.build();
     }
