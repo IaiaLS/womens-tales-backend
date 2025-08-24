@@ -1,4 +1,4 @@
-package com.example.womensTales.model;
+package com.example.womensTales.enums;
 
 
 public enum RoleEnum {

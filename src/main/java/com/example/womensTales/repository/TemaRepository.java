@@ -2,12 +2,12 @@ package com.example.womensTales.repository;
 
 import java.util.List;
 
+import com.example.womensTales.entity.TemaEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.example.womensTales.model.Tema;
 
-public interface TemaRepository extends JpaRepository<Tema, Long>{
+public interface TemaRepository extends JpaRepository<TemaEntity, Long>{
 	
-	public List <Tema> findAllByTituloContainingIgnoreCase(String titulo);
+	public List <TemaEntity> findAllByTituloContainingIgnoreCase(String titulo);
 	
 }

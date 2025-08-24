@@ -1,73 +1,56 @@
 package com.example.womensTales.controller;
 
-import java.util.List;
-
+import com.example.womensTales.dto.TemaDTO;
+import com.example.womensTales.service.TemaService;
 import jakarta.validation.Valid;
-
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.DeleteMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
 
-import com.example.womensTales.model.Tema;
-import com.example.womensTales.repository.TemaRepository;
+import java.util.List;
 
 @RestController
 @RequestMapping("/temas")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class TemaController {
 
-	@Autowired
-	private TemaRepository temaRepository;
+    private final TemaService temaService;
 
-	@GetMapping
-	public ResponseEntity<List<Tema>> getAll() {
-		return ResponseEntity.ok(temaRepository.findAll());
-	}
+    public TemaController(TemaService temaService) {
+        this.temaService = temaService;
+    }
 
-	@GetMapping("/{id}")
-	public ResponseEntity<Tema> getById(@PathVariable long id) {
-		return temaRepository.findById(id).map(resp -> ResponseEntity.ok(resp))
-				.orElse(ResponseEntity.notFound().build());
+    @GetMapping
+    public ResponseEntity<List<TemaDTO>> getAll() {
+        return ResponseEntity.ok(temaService.getAll());
+    }
 
-	}
+    @GetMapping("/{id}")
+    public ResponseEntity<TemaDTO> getById(@PathVariable Long id) {
+        return ResponseEntity.ok(temaService.getById(id));
+    }
 
-	@GetMapping("/titulo/{titulo}")
-	public ResponseEntity<List<Tema>> getByTitulo(@PathVariable String titulo) {
-		return ResponseEntity.ok(temaRepository.findAllByTituloContainingIgnoreCase(titulo));
+    @GetMapping("/titulo/{titulo}")
+    public ResponseEntity<List<TemaDTO>> getByTitulo(@PathVariable String titulo) {
+        return ResponseEntity.ok(temaService.getByTitulo(titulo));
+    }
 
-	}
+    @PostMapping()
+    public ResponseEntity<TemaDTO> create(@Valid @RequestBody TemaDTO dto,
+                                            @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(temaService.create(dto, authHeader.replace("Bearer ", "")));
+    }
 
-	@PostMapping
-	public ResponseEntity<Tema> postTema(@Valid @RequestBody Tema tema) {
+    @PutMapping
+    public ResponseEntity<TemaDTO> update(@Valid @RequestBody TemaDTO dto,
+                                          @RequestHeader("Authorization") String authHeader) {
+        return ResponseEntity.ok(temaService.update(dto, authHeader.replace("Bearer ", "")));
+    }
 
-		return ResponseEntity.status(HttpStatus.CREATED).body(temaRepository.save(tema));
-	}
-
-	@PutMapping
-	public ResponseEntity<Tema> putTema(@Valid @RequestBody Tema tema) {
-
-		return temaRepository.findById(tema.getId())
-				.map(resp -> ResponseEntity.status(HttpStatus.OK).body(temaRepository.save(tema)))
-				.orElse(ResponseEntity.notFound().build());
-
-	}
-
-	@DeleteMapping("/{id}")
-	public ResponseEntity<?> deleteTema(@PathVariable long id) {
-
-		return temaRepository.findById(id).map(resposta -> {
-			temaRepository.deleteById(id);
-			return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-		}).orElse(ResponseEntity.notFound().build());
-	}
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> delete(@PathVariable Long id,
+                                       @RequestHeader("Authorization") String authHeader) {
+        temaService.delete(id, authHeader.replace("Bearer ", ""));
+        return ResponseEntity.noContent().build();
+    }
 }
