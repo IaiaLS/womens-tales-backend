@@ -1,31 +1,26 @@
 package com.example.womensTales.security;
 
-import java.util.Optional;
-
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.womensTales.entity.UsuarioEntity;
+import com.example.womensTales.repository.UsuarioRepository;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
-import com.example.womensTales.model.Usuario;
-import com.example.womensTales.repository.UsuarioRepository;
-
 @Service
 public class UserDetailsServiceImpl implements UserDetailsService {
 
-	@Autowired
-	private UsuarioRepository userRepository;
+    private final UsuarioRepository usuarioRepository;
 
+    public UserDetailsServiceImpl(UsuarioRepository usuarioRepository) {
+        this.usuarioRepository = usuarioRepository;
+    }
 
-	@Override
-	public UserDetails loadUserByUsername(String userName) throws UsernameNotFoundException {
+    @Override
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        UsuarioEntity usuario = usuarioRepository.findByUsuario(username)
+                .orElseThrow(() -> new UsernameNotFoundException("Usuário não encontrado: " + username));
 
-		
-		Optional<Usuario> usuario = userRepository.findByUsuario(userName);
-	  
-		usuario.orElseThrow(() -> new UsernameNotFoundException(userName + " not found."));
-
-		return usuario.map(UserDetailsImpl::new).get();
-	}
+        return new UserDetailsImpl(usuario);
+    }
 }

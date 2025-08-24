@@ -1,81 +1,86 @@
 package com.example.womensTales.service;
 
-import java.nio.charset.StandardCharsets;
-import java.util.Base64;
+import java.util.List;
 import java.util.Optional;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import com.example.womensTales.dto.UsuarioCreateDTO;
+import com.example.womensTales.dto.UsuarioDTO;
+import com.example.womensTales.entity.UsuarioEntity;
+import com.example.womensTales.enums.RoleEnum;
+import com.example.womensTales.mapper.UsuarioMapper;
+import com.example.womensTales.security.JwtService;
+import com.example.womensTales.security.UserDetailsImpl;
+import com.example.womensTales.repository.UsuarioRepository;
+
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.example.womensTales.model.Usuario;
-import com.example.womensTales.model.UsuarioLogin;
-import com.example.womensTales.repository.UsuarioRepository;
-
 @Service
+@RequiredArgsConstructor
 public class UsuarioService {
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
+    private final UsuarioRepository usuarioRepository;
+    private final UsuarioMapper usuarioMapper;
+    private final JwtService jwtService;
+    private final PasswordEncoder passwordEncoder;
 
-    public Optional<Usuario> cadastrarUsuario(Usuario usuario) {
 
-        if (usuarioRepository.findByUsuario(usuario.getUsuario()).isPresent())
+
+    public Optional<UsuarioDTO> cadastrarUsuario(UsuarioCreateDTO usuarioCreateDTO) {
+        if (usuarioRepository.findByUsuario(usuarioCreateDTO.getUsuario()).isPresent())
             return Optional.empty();
 
-        usuario.setSenha(criptografarSenha(usuario.getSenha()));
+        var entity = usuarioMapper.fromCreateDTO(usuarioCreateDTO);
+        entity.setSenha(criptografarSenha(usuarioCreateDTO.getSenha()));
+        entity.setRole(RoleEnum.USER);
 
-        return Optional.of(usuarioRepository.save(usuario));
+        var salvo = usuarioRepository.save(entity);
+        return Optional.of(usuarioMapper.toDTO(salvo));
     }
 
-    public Optional<Usuario> atualizarUsuario(Usuario usuario) {
 
-        if (usuarioRepository.findById(usuario.getId()).isPresent()) {
+    public UsuarioDTO atualizarUsuario(UsuarioCreateDTO usuarioUpdateDTO, String token) {
+        String usernameToken = jwtService.extractUsername(token);
 
-            Optional<Usuario> buscaUsuario = usuarioRepository.findByUsuario(usuario.getUsuario());
-
-            if (buscaUsuario.isPresent() && !buscaUsuario.get().getId().equals(usuario.getId()))
-                throw new ResponseStatusException(
-                        HttpStatus.BAD_REQUEST, "Usuário já existe!", null);
-
-            usuario.setSenha(criptografarSenha(usuario.getSenha()));
-
-            return Optional.of(usuarioRepository.save(usuario));
+        if (!usernameToken.equals(usuarioUpdateDTO.getUsuario())) {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "Você só pode atualizar o seu próprio usuário");
         }
 
-        return Optional.empty();
+        UsuarioEntity existing = usuarioRepository.findByUsuario(usernameToken)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Usuário não encontrado"));
+
+        existing.setNome(usuarioUpdateDTO.getNome());
+        existing.setApelido(usuarioUpdateDTO.getApelido());
+        existing.setProfissao(usuarioUpdateDTO.getProfissao());
+        existing.setFoto(usuarioUpdateDTO.getFoto());
+
+        if (usuarioUpdateDTO.getSenha() != null && !usuarioUpdateDTO.getSenha().isBlank()) {
+            existing.setSenha(criptografarSenha(usuarioUpdateDTO.getSenha()));
+        }
+
+        UsuarioEntity salvo = usuarioRepository.save(existing);
+        return usuarioMapper.toDTO(salvo);
     }
 
-    public Optional<UsuarioLogin> autenticarUsuario(Optional<UsuarioLogin> usuarioLogin) {
 
-        Optional<Usuario> usuario = usuarioRepository.findByUsuario(usuarioLogin.get().getUsuario());
-
-        if (usuario.isPresent()) {
-            if (compararSenhas(usuarioLogin.get().getSenha(), usuario.get().getSenha())) {
-
-                usuarioLogin.get().setId(usuario.get().getId());
-                usuarioLogin.get().setNome(usuario.get().getNome());
-                usuarioLogin.get().setFoto(usuario.get().getFoto());
-                usuarioLogin.get().setApelido(usuario.get().getApelido());
-                usuarioLogin.get().setProfissao(usuario.get().getProfissao());
-
-                usuarioLogin.get().setSenha(null);
-
-                return usuarioLogin;
-            }
-        }
-
-        return Optional.empty();
+    public Optional<UserDetailsImpl> autenticarUsuario(String usuario, String senhaDigitada) {
+        return usuarioRepository.findByUsuario(usuario)
+                .filter(user -> passwordEncoder.matches(senhaDigitada, user.getSenha()))
+                .map(UserDetailsImpl::new);
     }
 
     private String criptografarSenha(String senha) {
-        return new BCryptPasswordEncoder().encode(senha);
+        return passwordEncoder.encode(senha);
     }
 
-    private boolean compararSenhas(String senhaDigitada, String senhaBanco) {
-        return new BCryptPasswordEncoder().matches(senhaDigitada, senhaBanco);
+    public List<UsuarioDTO> getAllUsuarios() {
+        return usuarioRepository.findAll()
+                .stream()
+                .map(usuarioMapper::toDTO)
+                .toList();
     }
 
 }

@@ -3,13 +3,13 @@ package com.example.womensTales.repository;
 import java.util.List;
 import java.util.Optional;
 
+import com.example.womensTales.entity.UsuarioEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.example.womensTales.model.Usuario;
 
-public interface UsuarioRepository extends JpaRepository<Usuario, Long>{
+public interface UsuarioRepository extends JpaRepository<UsuarioEntity, Long>{
 	
-	public List <Usuario> findAllByUsuarioContainingIgnoreCase(String usuario);
+	List <UsuarioEntity> findAllByUsuarioContainingIgnoreCase(String usuario);
 	
-	public Optional <Usuario> findByUsuario (String usuario);
+	Optional <UsuarioEntity> findByUsuario (String usuario);
 }

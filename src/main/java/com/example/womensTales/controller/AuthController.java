@@ -1,14 +1,13 @@
 package com.example.womensTales.controller;
 
 
-import com.example.womensTales.model.UsuarioLogin;
+import com.example.womensTales.dto.UsuarioLoginDTO;
 import com.example.womensTales.security.JwtService;
 import com.example.womensTales.service.UsuarioService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/auth")
@@ -24,20 +23,20 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody UsuarioLogin loginRequest) {
-        Optional<UsuarioLogin> usuario = usuarioService.autenticarUsuario(Optional.of(loginRequest));
+    public ResponseEntity<?> login(@RequestBody UsuarioLoginDTO loginRequest) {
+        return usuarioService.autenticarUsuario(loginRequest.getUsuario(), loginRequest.getSenha())
+                .map(userDetails -> {
+                    String accessToken = jwtService.generateToken(userDetails);
+                    String refreshToken = jwtService.generateToken(userDetails); // pode ser diferente depois
 
-        if (usuario.isEmpty()) {
-            return ResponseEntity.status(401).body(Map.of("error", "Usuário ou senha inválidos"));
-        }
-
-        String accessToken = jwtService.generateToken(loginRequest.getUsuario());
-        String refreshToken = jwtService.generateToken(loginRequest.getUsuario());
-
-        return ResponseEntity.ok(Map.of(
-                "accessToken", accessToken,
-                "refreshToken", refreshToken
-        ));
+                    return ResponseEntity.ok(Map.of(
+                            "accessToken", accessToken,
+                            "refreshToken", refreshToken
+                    ));
+                })
+                .orElse(ResponseEntity.status(401).body(Map.of("error", "Usuário ou senha inválidos")));
     }
+
+
 }
 

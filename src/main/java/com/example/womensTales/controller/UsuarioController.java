@@ -1,64 +1,48 @@
 package com.example.womensTales.controller;
 
 import java.util.List;
-import java.util.Optional;
+
+import com.example.womensTales.dto.UsuarioCreateDTO;
+import com.example.womensTales.dto.UsuarioDTO;
+import com.example.womensTales.service.UsuarioService;
 
 import jakarta.validation.Valid;
-
-
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-
-import com.example.womensTales.model.Usuario;
-import com.example.womensTales.model.UsuarioLogin;
-import com.example.womensTales.repository.UsuarioRepository;
-import com.example.womensTales.service.UsuarioService;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/usuarios")
 @CrossOrigin(origins = "*", allowedHeaders = "*")
 public class UsuarioController {
-		
-	@Autowired
-	private UsuarioService usuarioService;
-	
-	@Autowired
-	private UsuarioRepository usuarioRepository;
-	
-	@GetMapping("/all")
-	public ResponseEntity <List<Usuario>> getAll(){		
-		return ResponseEntity.ok(usuarioRepository.findAll());
-		
-	}
-	
-	@PostMapping("/logar")
-	public ResponseEntity<UsuarioLogin> login(@RequestBody Optional<UsuarioLogin> user) {
-		return usuarioService.autenticarUsuario(user)
-			.map(resposta -> ResponseEntity.ok(resposta))
-			.orElse(ResponseEntity.status(HttpStatus.UNAUTHORIZED).build());				
-	}
 
-	@PostMapping("/cadastrar")
-	public ResponseEntity<Usuario> postUsuario(@Valid @RequestBody Usuario usuario) {
-		return usuarioService.cadastrarUsuario(usuario)
-			.map(resposta -> ResponseEntity.status(HttpStatus.CREATED).body(resposta))
-			.orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());		
-	}
+    private final UsuarioService usuarioService;
 
-	@PutMapping("/atualizar")
-	public ResponseEntity<Usuario> putUsuario(@Valid @RequestBody Usuario usuario) {
-		return usuarioService.atualizarUsuario(usuario)
-			.map(resposta -> ResponseEntity.status(HttpStatus.OK).body(resposta))
-			.orElse(ResponseEntity.status(HttpStatus.NOT_FOUND).build());		
-	}
+    public UsuarioController(UsuarioService usuarioService) {
+        this.usuarioService = usuarioService;
+    }
 
+    @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UsuarioDTO>> getAll() {
+        return ResponseEntity.ok(usuarioService.getAllUsuarios());
+    }
+
+    @PostMapping
+    public ResponseEntity<UsuarioDTO> postUsuario(@Valid @RequestBody UsuarioCreateDTO usuario ){
+        return usuarioService.cadastrarUsuario(usuario)
+                .map(resposta -> ResponseEntity.status(HttpStatus.CREATED).body(resposta))
+                .orElse(ResponseEntity.status(HttpStatus.BAD_REQUEST).build());
+    }
+
+    @PutMapping
+    public ResponseEntity<UsuarioDTO> atualizar(
+            @RequestBody UsuarioCreateDTO usuarioDTO,
+            @RequestHeader("Authorization") String authHeader) {
+
+        String token = authHeader.replace("Bearer ", "");
+        UsuarioDTO atualizado = usuarioService.atualizarUsuario(usuarioDTO, token);
+        return ResponseEntity.ok(atualizado);
+    }
 }
-
