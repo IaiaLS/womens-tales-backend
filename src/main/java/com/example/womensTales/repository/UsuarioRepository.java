@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface UsuarioRepository extends JpaRepository<UsuarioEntity, Long>{
 	
-	public List <UsuarioEntity> findAllByUsuarioContainingIgnoreCase(String usuario);
+	List <UsuarioEntity> findAllByUsuarioContainingIgnoreCase(String usuario);
 	
-	public Optional <UsuarioEntity> findByUsuario (String usuario);
+	Optional <UsuarioEntity> findByUsuario (String usuario);
 }

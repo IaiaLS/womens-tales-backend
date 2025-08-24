@@ -30,6 +30,6 @@ public class TemaEntity {
     @Size(min = 2, max = 100)
     private String palavraChave;
 
-    @OneToMany(mappedBy = "tema", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "tema")
     private List<PostagemEntity> postagens;
 }

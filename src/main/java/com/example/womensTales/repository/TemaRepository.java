@@ -8,6 +8,6 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface TemaRepository extends JpaRepository<TemaEntity, Long>{
 	
-	public List <TemaEntity> findAllByTituloContainingIgnoreCase(String titulo);
+	List <TemaEntity> findAllByTituloContainingIgnoreCase(String titulo);
 	
 }

@@ -10,7 +10,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface PostagemRepository extends JpaRepository<PostagemEntity, Long>{
 	
-	public List <PostagemEntity> findAllByTituloContainingIgnoreCase(String titulo);
-    public List <PostagemEntity> findAllByTema(TemaEntity tema);
+	List <PostagemEntity> findAllByTituloContainingIgnoreCase(String titulo);
+    List <PostagemEntity> findAllByTema(TemaEntity tema);
 	
 }
