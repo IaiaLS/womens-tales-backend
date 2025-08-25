@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: womens-tales
+
+  jackson:
+    time-zone: America/Sao_Paulo
+    date-format: yyyy-MM-dd HH:mm:ss
+
+# Swagger
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    disable-swagger-default-url: true
+    use-root-path: true
+  packagesToScan: com.example.womensTales.controller
+
+# CORS (padrão – pode sobrescrever nos profiles)
+cors:
+  allowed-origins: "*"

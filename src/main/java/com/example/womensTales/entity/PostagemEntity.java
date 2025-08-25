@@ -26,8 +26,7 @@ public class PostagemEntity {
     @Size(min = 5, max = 100)
     private String titulo;
 
-    @Lob
-    @NotBlank
+    @Column(columnDefinition = "MEDIUMTEXT")
     private String texto;
 
     private String midia;
